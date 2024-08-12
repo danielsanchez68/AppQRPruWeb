@@ -26,8 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Controlador = void 0;
 const express_1 = __importDefault(require("express"));
-const https_1 = __importDefault(require("https"));
-const fs_1 = __importDefault(require("fs"));
+const http_1 = __importDefault(require("http"));
 const config_1 = __importDefault(require("../../config"));
 const cors_1 = __importDefault(require("cors"));
 const inversify_1 = require("inversify");
@@ -98,14 +97,7 @@ let UI_HTTP = class UI_HTTP {
             app.use('/api/maquina', this.config());
             // --------------- Listen del Servidor ------------------
             const PORT = config_1.default.PORT;
-            const sslKey = 'ssl/localhost.key';
-            const sslCrt = 'ssl/localhost.crt';
-            var options = {
-                key: fs_1.default.readFileSync(sslKey),
-                cert: fs_1.default.readFileSync(sslCrt)
-            };
-            const ip = sslCrt.replace('.', '/').split('/')[1] || '127.0.0.1';
-            const server = https_1.default.createServer(options, app).listen(PORT, () => console.log(`Server AppQR listen in https://${ip}:${PORT} - cert[${sslCrt} - ${sslKey}]`));
+            const server = http_1.default.createServer(app).listen(PORT, () => console.log(`Server AppQR listen in https://localhost:${PORT}`));
             server.on('error', error => console.log(`Error en servidor: ${error.message}`));
         });
     }

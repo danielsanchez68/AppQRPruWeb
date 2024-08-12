@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express'
-import https from 'https';
+import http from 'http';
 
 import fs from 'fs';
 
@@ -86,17 +86,7 @@ class UI_HTTP implements IUI {
         // --------------- Listen del Servidor ------------------
         const PORT = config.PORT
 
-        const sslKey = 'ssl/localhost.key'
-        const sslCrt = 'ssl/localhost.crt'
-        
-        var options = {
-            key: fs.readFileSync(sslKey),
-            cert: fs.readFileSync(sslCrt)
-        };
-
-        const ip = sslCrt.replace('.','/').split('/')[1] || '127.0.0.1'
-
-        const server = https.createServer(options, app).listen(PORT, () => console.log(`Server AppQR listen in https://${ip}:${PORT} - cert[${sslCrt} - ${sslKey}]`))
+        const server = http.createServer(app).listen(PORT, () => console.log(`Server AppQR listen in https://localhost:${PORT}`))
         server.on('error', error => console.log(`Error en servidor: ${error.message}`))
     }    
 }
