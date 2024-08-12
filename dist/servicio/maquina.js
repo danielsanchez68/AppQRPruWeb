@@ -28,12 +28,27 @@ const inversify_1 = require("inversify");
 //import validar from './validaciones/producto'
 const container_types_1 = __importDefault(require("../container.types"));
 let Servicio = class Servicio {
-    constructor(sistemaExt, model) {
+    constructor(sistemaExt) {
         this.sistemaExt = sistemaExt;
-        this.model = model;
         this.enviarCodigoMaquina = (datosEntrada) => __awaiter(this, void 0, void 0, function* () {
             const datosMaquina = yield new Promise(resolve => {
                 this.sistemaExt.send(datosEntrada, (datosMaquina) => {
+                    resolve(datosMaquina);
+                });
+            });
+            return datosMaquina;
+        });
+        this.getListadoMaquinas = () => __awaiter(this, void 0, void 0, function* () {
+            const listado = yield new Promise(resolve => {
+                this.sistemaExt.get((listado) => {
+                    resolve(listado);
+                });
+            });
+            return listado;
+        });
+        this.asociarMaquina = (datosEntrada) => __awaiter(this, void 0, void 0, function* () {
+            const datosMaquina = yield new Promise(resolve => {
+                this.sistemaExt.asociar(datosEntrada, (datosMaquina) => {
                     resolve(datosMaquina);
                 });
             });
@@ -44,7 +59,6 @@ let Servicio = class Servicio {
 Servicio = __decorate([
     (0, inversify_1.injectable)(),
     __param(0, (0, inversify_1.inject)(container_types_1.default.ISistemaExt)),
-    __param(1, (0, inversify_1.inject)(container_types_1.default.IDAOProductos)),
-    __metadata("design:paramtypes", [Object, Object])
+    __metadata("design:paramtypes", [Object])
 ], Servicio);
 exports.default = Servicio;

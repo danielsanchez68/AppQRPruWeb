@@ -1,11 +1,12 @@
 import 'reflect-metadata';
 import { container } from "./container";
 import TYPES from "./container.types";
-import { IServer } from "./interfaces/IServer";
+import { IServer } from "./IServer";
+
+import './SistemaExt/server'
 
 process.on('uncaughtException', function (err) {
-    console.log('EXCEPCIÓN:', err.message);
-    //process.exit(0);
+    console.log('EXCEPCIÓN:', err.message, err);
 });
 
 container.get<IServer>(TYPES.IServer).start();

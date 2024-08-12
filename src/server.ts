@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify"
-import { IUI } from "./interfaces/IUI"
+import { IUI } from "./in/Puertos/IUI"
 import TYPES from "./container.types"
-import { IServer } from "./interfaces/IServer"
+import { IServer } from "./IServer"
 
 @injectable()
 class Server implements IServer {
