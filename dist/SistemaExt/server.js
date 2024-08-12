@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_net_1 = __importDefault(require("node:net"));
 const servicioMaquinas = __importStar(require("./DAO/maquinas.js"));
+const config_1 = __importDefault(require("../config"));
 const options = {
     keepAlive: true
 };
@@ -81,7 +82,7 @@ const server = node_net_1.default.createServer(options, socket => {
         console.error('Connection error:', err);
     });
 });
-const port = 3000;
+const port = config_1.default.PORT_EXT;
 server.listen(port, () => {
     console.log(`TCP server started on port ${port}`);
 });

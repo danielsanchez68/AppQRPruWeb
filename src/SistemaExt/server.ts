@@ -2,6 +2,8 @@ import net from 'node:net';
 
 import * as servicioMaquinas from './DAO/maquinas.js'
 
+import config from '../config'
+
 const options = {
     keepAlive: true
 }
@@ -56,7 +58,7 @@ const server = net.createServer(options, socket => {
     });
 });
 
-const port = 3000;
+const port = config.PORT_EXT;
 server.listen(port, () => {
     console.log(`TCP server started on port ${port}`);
 });
