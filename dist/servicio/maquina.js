@@ -54,6 +54,14 @@ let Servicio = class Servicio {
             });
             return datosMaquina;
         });
+        this.filtrarMaquina = (datosEntrada) => __awaiter(this, void 0, void 0, function* () {
+            const datosMaquina = yield new Promise(resolve => {
+                this.sistemaExt.filtrar(datosEntrada, (datosMaquina) => {
+                    resolve(datosMaquina);
+                });
+            });
+            return datosMaquina;
+        });
     }
 };
 Servicio = __decorate([

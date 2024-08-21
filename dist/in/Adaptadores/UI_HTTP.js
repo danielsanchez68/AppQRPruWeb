@@ -68,6 +68,19 @@ let Controlador = class Controlador {
                 res.status(500).json({ errMsg: error.message });
             }
         });
+        this.filtrarMaquina = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const datosEntrada = req.body;
+                if (!Object.keys(datosEntrada).length)
+                    throw new Error('ERROR: datosEntrada vacío');
+                const datosMaquina = yield this.servicio.filtrarMaquina(datosEntrada);
+                //console.log(datosMaquina)
+                res.json(datosMaquina);
+            }
+            catch (error) {
+                res.status(500).json({ errMsg: error.message });
+            }
+        });
     }
 };
 exports.Controlador = Controlador;
@@ -85,6 +98,7 @@ let UI_HTTP = class UI_HTTP {
         router.post('/codigo', this.controlador.enviarCodigoMaquina);
         router.get('/listado', this.controlador.getListadoMaquinas);
         router.post('/asociar', this.controlador.asociarMaquina);
+        router.post('/filtrar', this.controlador.filtrarMaquina);
         return router;
     }
     start() {
@@ -97,7 +111,7 @@ let UI_HTTP = class UI_HTTP {
             app.use('/api/maquina', this.config());
             // --------------- Listen del Servidor ------------------
             const PORT = config_1.default.PORT;
-            const server = http_1.default.createServer(app).listen(PORT, () => console.log(`Server AppQR listen in https://localhost:${PORT}`));
+            const server = http_1.default.createServer(app).listen(PORT, () => console.log(`Server AppQR listen in http://localhost:${PORT}`));
             server.on('error', error => console.log(`Error en servidor: ${error.message}`));
         });
     }

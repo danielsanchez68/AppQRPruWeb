@@ -35,20 +35,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const node_net_1 = __importDefault(require("node:net"));
-const servicioMaquinas = __importStar(require("./DAO/maquinas.js"));
+const net_1 = __importDefault(require("net"));
+const servicioMaquinas = __importStar(require("./DAO/maquinas"));
 const config_1 = __importDefault(require("../config"));
 const options = {
     keepAlive: true
 };
 // Crear el servidor TCP
-const server = node_net_1.default.createServer(options, socket => {
+const server = net_1.default.createServer(options, socket => {
     console.log('Client connected');
     // Evento para manejar datos recibidos del cliente
     socket.on('data', (data) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const datosRecibidos = JSON.parse(data);
-            console.log('\n> Datos recibidos', datosRecibidos);
+            //console.log('\n> Datos recibidos', datosRecibidos);
             let datosEnviados;
             if (datosRecibidos.cmd == 'send') {
                 const { codigo } = datosRecibidos.datos;
@@ -65,7 +65,12 @@ const server = node_net_1.default.createServer(options, socket => {
                 const maquina = yield servicioMaquinas.relacionarCodigo(codigo, uuid);
                 datosEnviados = maquina;
             }
-            console.log('< Datos enviados', datosEnviados);
+            else if (datosRecibidos.cmd == 'filtrar') {
+                const { uuidParcial } = datosRecibidos.datos;
+                const maquinas = yield servicioMaquinas.filtrarPorUuid(uuidParcial);
+                datosEnviados = maquinas;
+            }
+            //console.log('< Datos enviados', datosEnviados);
             // Enviar datos de vuelta al cliente
             socket.write(JSON.stringify(datosEnviados));
         }
@@ -73,11 +78,11 @@ const server = node_net_1.default.createServer(options, socket => {
             console.log('ERROR:', error.message);
         }
     }));
-    // Evento cuando se cierra la conexi�n del cliente
+    // Evento cuando se cierra la conexión del cliente
     socket.on('close', () => {
         console.log('Client disconnected');
     });
-    // Manejar errores de conexi�n
+    // Manejar errores de conexión
     socket.on('error', (err) => {
         console.error('Connection error:', err);
     });

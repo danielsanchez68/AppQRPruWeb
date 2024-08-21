@@ -79,20 +79,24 @@ class SistemaExt implements ISistemaExt {
     get(receive:any) {
         if(this.client) {
             this.buffer = ''
-            //console.log(datos)
             this.client.write(JSON.stringify({cmd: 'get'}))
             if(typeof receive === 'function' ) this.receive = receive
-            //console.log(this.receive)
         }
     }
 
     asociar(datos:any, receive:any) {
         if(this.client) {
             this.buffer = ''
-            //console.log(datos)
             this.client.write(JSON.stringify({cmd: 'asociar', datos}))
             if(typeof receive === 'function' ) this.receive = receive
-            //console.log(this.receive)
+        }
+    }
+
+    filtrar(datos:any, receive:any) {
+        if(this.client) {
+            this.buffer = ''
+            this.client.write(JSON.stringify({cmd: 'filtrar', datos}))
+            if(typeof receive === 'function' ) this.receive = receive
         }
     }
 }

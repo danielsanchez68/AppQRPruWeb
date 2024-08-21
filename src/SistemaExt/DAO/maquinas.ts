@@ -1,4 +1,5 @@
 import fs from 'fs';
+import delay from '../delay.js';
 
 // Ruta del archivo DB.Json
 const dbFilePath = './DB.json';
@@ -14,7 +15,7 @@ export async function obtener() {
     }
 }
 
-async function guardar(maquinas) {
+async function guardar(maquinas:any) {
     try {
         await fs.promises.writeFile(dbFilePath, JSON.stringify(maquinas,null,'\t'))
     } catch (error:any) {
@@ -26,6 +27,7 @@ async function guardar(maquinas) {
 export async function obtenerPorCodigo(codigo) {
     try {
         const maquinas = await obtener()
+        await delay(1000)
         //console.log(maquinas)
         const maquina = maquinas.find(maquina => maquina.codigo === codigo);
         if(!maquina) throw new Error(`código ${codigo} no relacionado a ninguna máquina`)
@@ -37,15 +39,31 @@ export async function obtenerPorCodigo(codigo) {
 
 export async function relacionarCodigo(codigo, uuid) {
     try {
+        //console.log(codigo, uuid)
+
         const maquinas = await obtener()
+        await delay(1000)
         const maquina = maquinas.find(maquina => maquina.uuid === uuid);
-        if(!maquina.codigo) {
+        //if(!maquina.codigo) {
             maquina.codigo = codigo
             await guardar(maquinas)
             const maquinasActualizada = await obtener()
             return maquinasActualizada
-        }
-        else throw new Error(`máquina ${uuid} ya relacionada con el código ${maquina.codigo}`)
+        //}
+        //else throw new Error(`máquina ${uuid} ya relacionada con el código ${maquina.codigo}`)
+    } catch (error:any) {
+        return { error: error.message };
+    }
+}
+
+export async function filtrarPorUuid(uuidParcial) {
+    try {
+        const maquinas = await obtener()
+        await delay(1000)
+        //console.log(maquinas)
+        const maquinasUuid = uuidParcial? maquinas.filter(maq => maq.uuid.includes(uuidParcial)) : []
+        if(!maquinasUuid) throw new Error(`uuid parcial ${uuidParcial} no coincide con ninguna máquina`)
+        return maquinasUuid;
     } catch (error:any) {
         return { error: error.message };
     }

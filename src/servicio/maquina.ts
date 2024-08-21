@@ -39,6 +39,15 @@ class Servicio implements IServicioMaquina {
         })
         return datosMaquina
     }
+
+    filtrarMaquina = async (datosEntrada:string) => {
+        const datosMaquina:Object = await new Promise(resolve => {
+            this.sistemaExt.filtrar(datosEntrada, (datosMaquina:any) => {
+                resolve(datosMaquina)
+            })
+        })
+        return datosMaquina
+    }
 }
 
 export default Servicio

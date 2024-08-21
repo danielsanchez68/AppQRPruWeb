@@ -1,8 +1,6 @@
 import express, { Request, Response } from 'express'
 import http from 'http';
 
-import fs from 'fs';
-
 import config from '../../config'
 
 import cors from 'cors'
@@ -15,6 +13,7 @@ export interface IControlador {
     enviarCodigoMaquina: (req:Request, res:Response) => Promise<void>
     getListadoMaquinas: (req:Request, res:Response) => Promise<void>
     asociarMaquina: (req:Request, res:Response) => Promise<void>
+    filtrarMaquina: (req:Request, res:Response) => Promise<void>
 }
 
 @injectable()
@@ -57,6 +56,19 @@ export class Controlador implements IControlador {
             res.status(500).json({errMsg: error.message})
         }
     }
+
+    filtrarMaquina = async (req:Request, res:Response) => {
+        try {
+            const datosEntrada = req.body
+            if(!Object.keys(datosEntrada).length) throw new Error('ERROR: datosEntrada vacío')
+            const datosMaquina = await this.servicio.filtrarMaquina(datosEntrada)
+            //console.log(datosMaquina)
+            res.json(datosMaquina)
+        }
+        catch(error:any) {
+            res.status(500).json({errMsg: error.message})
+        }
+    }
 }
 
 @injectable()
@@ -69,6 +81,7 @@ class UI_HTTP implements IUI {
         router.post('/codigo', this.controlador.enviarCodigoMaquina )
         router.get('/listado', this.controlador.getListadoMaquinas )
         router.post('/asociar', this.controlador.asociarMaquina )
+        router.post('/filtrar', this.controlador.filtrarMaquina )
 
         return router
     }
@@ -86,7 +99,7 @@ class UI_HTTP implements IUI {
         // --------------- Listen del Servidor ------------------
         const PORT = config.PORT
 
-        const server = http.createServer(app).listen(PORT, () => console.log(`Server AppQR listen in https://localhost:${PORT}`))
+        const server = http.createServer(app).listen(PORT, () => console.log(`Server AppQR listen in http://localhost:${PORT}`))
         server.on('error', error => console.log(`Error en servidor: ${error.message}`))
     }    
 }

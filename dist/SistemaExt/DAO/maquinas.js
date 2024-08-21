@@ -15,7 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.obtener = obtener;
 exports.obtenerPorCodigo = obtenerPorCodigo;
 exports.relacionarCodigo = relacionarCodigo;
+exports.filtrarPorUuid = filtrarPorUuid;
 const fs_1 = __importDefault(require("fs"));
+const delay_js_1 = __importDefault(require("../delay.js"));
 // Ruta del archivo DB.Json
 const dbFilePath = './DB.json';
 function obtener() {
@@ -46,6 +48,7 @@ function obtenerPorCodigo(codigo) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const maquinas = yield obtener();
+            yield (0, delay_js_1.default)(1000);
             //console.log(maquinas)
             const maquina = maquinas.find(maquina => maquina.codigo === codigo);
             if (!maquina)
@@ -60,16 +63,33 @@ function obtenerPorCodigo(codigo) {
 function relacionarCodigo(codigo, uuid) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            //console.log(codigo, uuid)
             const maquinas = yield obtener();
+            yield (0, delay_js_1.default)(1000);
             const maquina = maquinas.find(maquina => maquina.uuid === uuid);
-            if (!maquina.codigo) {
-                maquina.codigo = codigo;
-                yield guardar(maquinas);
-                const maquinasActualizada = yield obtener();
-                return maquinasActualizada;
-            }
-            else
-                throw new Error(`máquina ${uuid} ya relacionada con el código ${maquina.codigo}`);
+            //if(!maquina.codigo) {
+            maquina.codigo = codigo;
+            yield guardar(maquinas);
+            const maquinasActualizada = yield obtener();
+            return maquinasActualizada;
+            //}
+            //else throw new Error(`máquina ${uuid} ya relacionada con el código ${maquina.codigo}`)
+        }
+        catch (error) {
+            return { error: error.message };
+        }
+    });
+}
+function filtrarPorUuid(uuidParcial) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const maquinas = yield obtener();
+            yield (0, delay_js_1.default)(1000);
+            //console.log(maquinas)
+            const maquinasUuid = uuidParcial ? maquinas.filter(maq => maq.uuid.includes(uuidParcial)) : [];
+            if (!maquinasUuid)
+                throw new Error(`uuid parcial ${uuidParcial} no coincide con ninguna máquina`);
+            return maquinasUuid;
         }
         catch (error) {
             return { error: error.message };

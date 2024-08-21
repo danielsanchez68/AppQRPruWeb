@@ -1,6 +1,6 @@
-import net from 'node:net';
+import net from 'net';
 
-import * as servicioMaquinas from './DAO/maquinas.js'
+import * as servicioMaquinas from './DAO/maquinas'
 
 import config from '../config'
 
@@ -16,9 +16,9 @@ const server = net.createServer(options, socket => {
     socket.on('data', async (data:any) => {
         try {
             const datosRecibidos = JSON.parse(data);
-            console.log('\n> Datos recibidos', datosRecibidos);
+            //console.log('\n> Datos recibidos', datosRecibidos);
 
-            let datosEnviados:any
+            let datosEnviados
             if(datosRecibidos.cmd == 'send') {
                 const { codigo } = datosRecibidos.datos;
                 const maquina = await servicioMaquinas.obtenerPorCodigo(codigo);
@@ -38,7 +38,12 @@ const server = net.createServer(options, socket => {
                 const maquina = await servicioMaquinas.relacionarCodigo(codigo, uuid);
                 datosEnviados = maquina
             }
-            console.log('< Datos enviados', datosEnviados);
+            else if(datosRecibidos.cmd == 'filtrar') {
+                const { uuidParcial } = datosRecibidos.datos;
+                const maquinas = await servicioMaquinas.filtrarPorUuid(uuidParcial);
+                datosEnviados = maquinas
+            }
+            //console.log('< Datos enviados', datosEnviados);
 
             // Enviar datos de vuelta al cliente
             socket.write(JSON.stringify(datosEnviados));
@@ -47,12 +52,12 @@ const server = net.createServer(options, socket => {
         }
     });
 
-    // Evento cuando se cierra la conexi�n del cliente
+    // Evento cuando se cierra la conexión del cliente
     socket.on('close', () => {
         console.log('Client disconnected');
     });
 
-    // Manejar errores de conexi�n
+    // Manejar errores de conexión
     socket.on('error', (err) => {
         console.error('Connection error:', err);
     });
