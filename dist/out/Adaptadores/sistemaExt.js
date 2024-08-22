@@ -96,6 +96,30 @@ let SistemaExt = class SistemaExt {
                 this.receive = receive;
         }
     }
+    obtenerUM(receive) {
+        if (this.client) {
+            this.buffer = '';
+            this.client.write(JSON.stringify({ cmd: 'obtener_um' }));
+            if (typeof receive === 'function')
+                this.receive = receive;
+        }
+    }
+    obtenerUM_Uuid(datos, receive) {
+        if (this.client) {
+            this.buffer = '';
+            this.client.write(JSON.stringify({ cmd: 'obtener_um_uuid', datos }));
+            if (typeof receive === 'function')
+                this.receive = receive;
+        }
+    }
+    agregarUM(datos, receive) {
+        if (this.client) {
+            this.buffer = '';
+            this.client.write(JSON.stringify({ cmd: 'agregar_um', datos }));
+            if (typeof receive === 'function')
+                this.receive = receive;
+        }
+    }
 };
 SistemaExt = __decorate([
     (0, inversify_1.injectable)(),

@@ -27,46 +27,38 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const inversify_1 = require("inversify");
 //import validar from './validaciones/producto'
 const container_types_1 = __importDefault(require("../container.types"));
-let ServicioMaq = class ServicioMaq {
+let ServicioMov = class ServicioMov {
     constructor(sistemaExt) {
         this.sistemaExt = sistemaExt;
-        this.enviarCodigoMaquina = (datosEntrada) => __awaiter(this, void 0, void 0, function* () {
-            const datosMaquina = yield new Promise(resolve => {
-                this.sistemaExt.send(datosEntrada, (datosMaquina) => {
-                    resolve(datosMaquina);
+        this.obtenerMovimientos = () => __awaiter(this, void 0, void 0, function* () {
+            const movimientos = yield new Promise(resolve => {
+                this.sistemaExt.obtenerUM((movimientos) => {
+                    resolve(movimientos);
                 });
             });
-            return datosMaquina;
+            return movimientos;
         });
-        this.getListadoMaquinas = () => __awaiter(this, void 0, void 0, function* () {
-            const listado = yield new Promise(resolve => {
-                this.sistemaExt.get((listado) => {
-                    resolve(listado);
+        this.obtenerMovimientoPorUuid = (uuid) => __awaiter(this, void 0, void 0, function* () {
+            const movimiento = yield new Promise(resolve => {
+                this.sistemaExt.obtenerUM_Uuid(uuid, (movimiento) => {
+                    resolve(movimiento);
                 });
             });
-            return listado;
+            return movimiento;
         });
-        this.asociarMaquina = (datosEntrada) => __awaiter(this, void 0, void 0, function* () {
-            const datosMaquina = yield new Promise(resolve => {
-                this.sistemaExt.asociar(datosEntrada, (datosMaquina) => {
-                    resolve(datosMaquina);
+        this.agregarMovimiento = (movimiento) => __awaiter(this, void 0, void 0, function* () {
+            const movimientos = yield new Promise(resolve => {
+                this.sistemaExt.agregarUM(movimiento, (movimientos) => {
+                    resolve(movimientos);
                 });
             });
-            return datosMaquina;
-        });
-        this.filtrarMaquina = (datosEntrada) => __awaiter(this, void 0, void 0, function* () {
-            const datosMaquina = yield new Promise(resolve => {
-                this.sistemaExt.filtrar(datosEntrada, (datosMaquina) => {
-                    resolve(datosMaquina);
-                });
-            });
-            return datosMaquina;
+            return movimientos;
         });
     }
 };
-ServicioMaq = __decorate([
+ServicioMov = __decorate([
     (0, inversify_1.injectable)(),
     __param(0, (0, inversify_1.inject)(container_types_1.default.ISistemaExt)),
     __metadata("design:paramtypes", [Object])
-], ServicioMaq);
-exports.default = ServicioMaq;
+], ServicioMov);
+exports.default = ServicioMov;

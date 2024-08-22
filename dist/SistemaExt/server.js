@@ -36,7 +36,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __importDefault(require("net"));
-const servicioMaquinas = __importStar(require("./DAO/maquinas"));
+const servicioMaquinas = __importStar(require("./DAO/maquinas.js"));
+const servicioMovimientos = __importStar(require("./DAO/ultimosMovimientos.js"));
 const config_1 = __importDefault(require("../config"));
 const options = {
     keepAlive: true
@@ -70,6 +71,21 @@ const server = net_1.default.createServer(options, socket => {
                 const maquinas = yield servicioMaquinas.filtrarPorUuid(uuidParcial);
                 datosEnviados = maquinas;
             }
+            else if (datosRecibidos.cmd == 'obtener_um') {
+                const movimientos = yield servicioMovimientos.obtener();
+                datosEnviados = movimientos;
+            }
+            else if (datosRecibidos.cmd == 'obtener_um_uuid') {
+                const { uuid } = datosRecibidos.datos;
+                const movimiento = yield servicioMovimientos.obtenerPorUuid(uuid);
+                datosEnviados = movimiento;
+            }
+            else if (datosRecibidos.cmd == 'agregar_um') {
+                const { movimiento } = datosRecibidos.datos;
+                yield servicioMovimientos.agregar(movimiento);
+                const movimientos = yield servicioMovimientos.obtener();
+                datosEnviados = movimientos;
+            }
             //console.log('< Datos enviados', datosEnviados);
             // Enviar datos de vuelta al cliente
             socket.write(JSON.stringify(datosEnviados));
@@ -78,11 +94,11 @@ const server = net_1.default.createServer(options, socket => {
             console.log('ERROR:', error.message);
         }
     }));
-    // Evento cuando se cierra la conexión del cliente
+    // Evento cuando se cierra la conexi�n del cliente
     socket.on('close', () => {
         console.log('Client disconnected');
     });
-    // Manejar errores de conexión
+    // Manejar errores de conexi�n
     socket.on('error', (err) => {
         console.error('Connection error:', err);
     });

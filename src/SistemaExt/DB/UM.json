@@ -1,0 +1,32 @@
+[
+	{
+		"terminal": "016-0152",
+		"fyh": "22/8/2024, 03:06:14",
+		"venta": 6000,
+		"impuesto": 69.82,
+		"neto": 5930.18,
+		"ticket": 123456789012345,
+		"error": null,
+		"detalle": ""
+	},
+	{
+		"terminal": "016-0149",
+		"fyh": "22/8/2024, 03:06:36",
+		"venta": 70000,
+		"impuesto": 69.82,
+		"neto": 69930.18,
+		"ticket": 123456789012345,
+		"error": 159,
+		"detalle": "Limite Vendedor Agotado"
+	},
+	{
+		"terminal": "016-0154",
+		"fyh": "22/8/2024, 03:07:10",
+		"venta": 7350,
+		"impuesto": 69.82,
+		"neto": 7280.18,
+		"ticket": 123456789012345,
+		"error": null,
+		"detalle": ""
+	}
+]

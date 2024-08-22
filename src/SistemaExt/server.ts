@@ -1,6 +1,7 @@
 import net from 'net';
 
-import * as servicioMaquinas from './DAO/maquinas'
+import * as servicioMaquinas from './DAO/maquinas.js'
+import * as servicioMovimientos from './DAO/ultimosMovimientos.js'
 
 import config from '../config'
 
@@ -43,6 +44,21 @@ const server = net.createServer(options, socket => {
                 const maquinas = await servicioMaquinas.filtrarPorUuid(uuidParcial);
                 datosEnviados = maquinas
             }
+            else if(datosRecibidos.cmd == 'obtener_um') {
+                const movimientos = await servicioMovimientos.obtener();
+                datosEnviados = movimientos
+            }
+            else if(datosRecibidos.cmd == 'obtener_um_uuid') {
+                const { uuid } = datosRecibidos.datos;
+                const movimiento = await servicioMovimientos.obtenerPorUuid(uuid);
+                datosEnviados = movimiento
+            }
+            else if(datosRecibidos.cmd == 'agregar_um') {
+                const { movimiento } = datosRecibidos.datos;
+                await servicioMovimientos.agregar(movimiento);
+                const movimientos = await servicioMovimientos.obtener();
+                datosEnviados = movimientos
+            }
             //console.log('< Datos enviados', datosEnviados);
 
             // Enviar datos de vuelta al cliente
@@ -52,12 +68,12 @@ const server = net.createServer(options, socket => {
         }
     });
 
-    // Evento cuando se cierra la conexión del cliente
+    // Evento cuando se cierra la conexi�n del cliente
     socket.on('close', () => {
         console.log('Client disconnected');
     });
 
-    // Manejar errores de conexión
+    // Manejar errores de conexi�n
     socket.on('error', (err) => {
         console.error('Connection error:', err);
     });

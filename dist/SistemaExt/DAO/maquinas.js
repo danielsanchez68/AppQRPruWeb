@@ -17,9 +17,9 @@ exports.obtenerPorCodigo = obtenerPorCodigo;
 exports.relacionarCodigo = relacionarCodigo;
 exports.filtrarPorUuid = filtrarPorUuid;
 const fs_1 = __importDefault(require("fs"));
-const delay_js_1 = __importDefault(require("../delay.js"));
+const delay_js_1 = __importDefault(require("../util/delay.js"));
 // Ruta del archivo DB.Json
-const dbFilePath = './DB.json';
+const dbFilePath = './DB/maquinas.json';
 function obtener() {
     return __awaiter(this, void 0, void 0, function* () {
         try {

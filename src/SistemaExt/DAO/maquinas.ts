@@ -1,8 +1,8 @@
 import fs from 'fs';
-import delay from '../delay.js';
+import delay from '../util/delay.js';
 
 // Ruta del archivo DB.Json
-const dbFilePath = './DB.json';
+const dbFilePath = './DB/maquinas.json';
 
 export async function obtener() {
     try {

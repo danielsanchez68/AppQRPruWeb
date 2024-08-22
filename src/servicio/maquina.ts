@@ -8,7 +8,7 @@ import { ISistemaExt } from '../out/Puertos/ISistemaExt'
 
 
 @injectable()
-class Servicio implements IServicioMaquina {
+class ServicioMaq implements IServicioMaquina {
     constructor(
         @inject(TYPES.ISistemaExt) private sistemaExt:ISistemaExt
     ) {}
@@ -50,4 +50,4 @@ class Servicio implements IServicioMaquina {
     }
 }
 
-export default Servicio
+export default ServicioMaq

@@ -1,7 +1,9 @@
 const TYPES = {
     IUI: Symbol('IUI'),
-    IControlador: Symbol('IControlador'),
+    IControladorMaq: Symbol('IControladorMaq'),
+    IControladorMov: Symbol('IControladorMov'),
     IServicioMaquina: Symbol('IServicioMaquina'),
+    IServicioMovimientos: Symbol('IServicioMovimientos'),
     IDAOProductos: Symbol('IDAOProductos'),
     ISistemaExt: Symbol('ISistemaExt'),
     IServer: Symbol('IServer')

@@ -99,6 +99,30 @@ class SistemaExt implements ISistemaExt {
             if(typeof receive === 'function' ) this.receive = receive
         }
     }
+
+    obtenerUM(receive:any) {
+        if(this.client) {
+            this.buffer = ''
+            this.client.write(JSON.stringify({cmd: 'obtener_um'}))
+            if(typeof receive === 'function' ) this.receive = receive
+        }
+    }
+
+    obtenerUM_Uuid(datos:any, receive:any) {
+        if(this.client) {
+            this.buffer = ''
+            this.client.write(JSON.stringify({cmd: 'obtener_um_uuid', datos}))
+            if(typeof receive === 'function' ) this.receive = receive
+        }
+    }
+
+    agregarUM(datos:any, receive:any) {
+        if(this.client) {
+            this.buffer = ''
+            this.client.write(JSON.stringify({cmd: 'agregar_um', datos}))
+            if(typeof receive === 'function' ) this.receive = receive
+        }
+    }
 }
 
 export default SistemaExt

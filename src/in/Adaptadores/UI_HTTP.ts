@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express'
-import http from 'http';
+import http from 'http'
 
 import config from '../../config'
 
@@ -8,16 +8,23 @@ import { IUI } from '../Puertos/IUI'
 import { inject, injectable } from 'inversify'
 import TYPES from '../../container.types'
 import { IServicioMaquina } from '../../servicio/IServicioMaquina'
+import { IServicioMovimientos } from '../../servicio/IServicioMovimientos';
 
-export interface IControlador {
+export interface IControladorMaq {
     enviarCodigoMaquina: (req:Request, res:Response) => Promise<void>
     getListadoMaquinas: (req:Request, res:Response) => Promise<void>
     asociarMaquina: (req:Request, res:Response) => Promise<void>
     filtrarMaquina: (req:Request, res:Response) => Promise<void>
 }
 
+export interface IControladorMov {
+    obtenerMovimientos: (req:Request, res:Response) => Promise<void>
+    obtenerMovimientoPorUuid: (req:Request, res:Response) => Promise<void>
+    agregarMovimiento: (req:Request, res:Response) => Promise<void>
+}
+
 @injectable()
-export class Controlador implements IControlador {
+export class ControladorMaq implements IControladorMaq {
     constructor(@inject(TYPES.IServicioMaquina)private servicio:IServicioMaquina) {}
     
     enviarCodigoMaquina = async (req:Request, res:Response) => {
@@ -72,16 +79,71 @@ export class Controlador implements IControlador {
 }
 
 @injectable()
-class UI_HTTP implements IUI {
-    constructor(@inject(TYPES.IControlador) private controlador:IControlador) {}
+export class ControladorMov implements IControladorMov {
+    constructor(@inject(TYPES.IServicioMovimientos)private servicio:IServicioMovimientos) {}
+    
+    obtenerMovimientos = async (req:Request, res:Response) => {
+        try {
+            const movimientos = await this.servicio.obtenerMovimientos()
+            res.json(movimientos)
+        }
+        catch(error:any) {
+            res.status(500).json({errMsg: error.message})
+        }
+    }
 
-    private config() {
+    obtenerMovimientoPorUuid = async (req:Request, res:Response) => {
+        try {
+            const uuid = req.body
+            if(!Object.keys(uuid).length) throw new Error('ERROR: uuid vacío')
+            const movimiento = await this.servicio.obtenerMovimientoPorUuid(uuid)
+
+            res.json(movimiento)
+        }
+        catch(error:any) {
+            res.status(500).json({errMsg: error.message})
+        }
+    }
+
+    agregarMovimiento = async (req:Request, res:Response) => {
+        try {
+            const movimiento = req.body
+            
+            if(!Object.keys(movimiento).length) throw new Error('ERROR: movimiento vacío')
+            const movimientos = await this.servicio.agregarMovimiento(movimiento)
+            res.json(movimientos)
+        }
+        catch(error:any) {
+            res.status(500).json({errMsg: error.message})
+        }
+    }
+}
+
+
+@injectable()
+class UI_HTTP implements IUI {
+    constructor(
+        @inject(TYPES.IControladorMaq) private controladorMaq:IControladorMaq,
+        @inject(TYPES.IControladorMov) private controladorMov:IControladorMov
+    ) {}
+
+    private configRouterMaq() {
         const router = express.Router()
 
-        router.post('/codigo', this.controlador.enviarCodigoMaquina )
-        router.get('/listado', this.controlador.getListadoMaquinas )
-        router.post('/asociar', this.controlador.asociarMaquina )
-        router.post('/filtrar', this.controlador.filtrarMaquina )
+        router.post('/codigo', this.controladorMaq.enviarCodigoMaquina )
+        router.get('/listado', this.controladorMaq.getListadoMaquinas )
+        router.post('/asociar', this.controladorMaq.asociarMaquina )
+        router.post('/filtrar', this.controladorMaq.filtrarMaquina )
+
+        return router
+    }
+
+    private configRouterMov() {
+        const router = express.Router()
+
+        router.get('/listado', this.controladorMov.obtenerMovimientos )
+        router.post('/uuid', this.controladorMov.obtenerMovimientoPorUuid )
+        router.post('/agregar', this.controladorMov.agregarMovimiento )
 
         return router
     }
@@ -94,7 +156,8 @@ class UI_HTTP implements IUI {
         app.use(express.json())
         
         // --------- Configuración de Rutas / endpoints ---------
-        app.use('/api/maquina', this.config())
+        app.use('/api/maquina', this.configRouterMaq())
+        app.use('/api/movimientos', this.configRouterMov())
         
         // --------------- Listen del Servidor ------------------
         const PORT = config.PORT
