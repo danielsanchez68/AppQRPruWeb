@@ -5,9 +5,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -15,114 +12,49 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __importDefault(require("net"));
 const inversify_1 = require("inversify");
 const config_1 = __importDefault(require("../../config"));
-let SistemaExt = class SistemaExt {
+class NetPromise {
     constructor() {
-        this.buffer = '';
-        this.init();
+        this.client = new net_1.default.Socket();
+        const host = config_1.default.HOST_EXT;
+        const port = config_1.default.PORT_EXT;
+        this.client.on('close', () => {
+            //console.log('net Connection closed');
+        });
+        this.client.on('error', (err) => {
+            console.error('Connection error:', err);
+        });
+        this.client.connect(port, host, () => {
+            try {
+                //console.log(`Connect net ${host}:${port}`);
+            }
+            catch (error) {
+                console.log('Error client.connect', error.message);
+                this.client = null;
+            }
+        });
     }
-    init() {
-        try {
-            const client = new net_1.default.Socket();
-            const host = config_1.default.HOST_EXT;
-            const port = config_1.default.PORT_EXT;
-            client.connect(port, host, () => {
+    send(cmd, datos = {}) {
+        return new Promise(resolve => {
+            let buffer = '';
+            this.client.write(JSON.stringify({ cmd, datos }));
+            this.client.on('data', (data) => {
+                buffer += data.toString();
                 try {
-                    console.log(`Connect to external service TCP ${host}:${port}`);
-                    //client.write('Hello from the TCP client');
+                    const datos = JSON.parse(buffer);
+                    this.client.destroy();
+                    resolve(datos);
                 }
-                catch (error) {
-                    console.log('Error client.connect', error.message);
-                }
+                catch (_a) { }
             });
-            client.on('data', (data) => {
-                this.buffer += data.toString();
-                try {
-                    const datos = JSON.parse(this.buffer);
-                    this.buffer = '';
-                    if (typeof this.receive === 'function')
-                        this.receive(datos);
-                }
-                catch (error) {
-                    //console.log('Error data SistemaExt:', error.message)//, error)
-                }
-            });
-            client.on('close', () => {
-                console.log('Connection closed');
-                this.reconectar();
-                //process.exit()
-            });
-            client.on('error', (err) => {
-                console.error('Connection error:', err);
-            });
-            this.client = client;
-        }
-        catch (error) {
-            console.log('Error conexión TCP:', error.message);
-        }
+        });
     }
-    reconectar() {
-        console.log('!!! Reconectando a sistema Externo... ', new Date().toLocaleString());
-        setTimeout(() => this.init(), 5000);
-    }
-    send(datos, receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'send', datos }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
-    }
-    get(receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'get' }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
-    }
-    asociar(datos, receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'asociar', datos }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
-    }
-    filtrar(datos, receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'filtrar', datos }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
-    }
-    obtenerUM(receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'obtener_um' }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
-    }
-    obtenerUM_Uuid(datos, receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'obtener_um_uuid', datos }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
-    }
-    agregarUM(datos, receive) {
-        if (this.client) {
-            this.buffer = '';
-            this.client.write(JSON.stringify({ cmd: 'agregar_um', datos }));
-            if (typeof receive === 'function')
-                this.receive = receive;
-        }
+}
+let SistemaExt = class SistemaExt {
+    consultaTerminal(datos) {
+        return new NetPromise().send(datos.Comando, datos);
     }
 };
 SistemaExt = __decorate([
-    (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [])
+    (0, inversify_1.injectable)()
 ], SistemaExt);
 exports.default = SistemaExt;

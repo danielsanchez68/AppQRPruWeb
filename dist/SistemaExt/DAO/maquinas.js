@@ -17,7 +17,6 @@ exports.obtenerPorCodigo = obtenerPorCodigo;
 exports.relacionarCodigo = relacionarCodigo;
 exports.filtrarPorUuid = filtrarPorUuid;
 const fs_1 = __importDefault(require("fs"));
-const delay_js_1 = __importDefault(require("../util/delay.js"));
 // Ruta del archivo DB.Json
 const dbFilePath = './DB/maquinas.json';
 function obtener() {
@@ -48,8 +47,6 @@ function obtenerPorCodigo(codigo) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const maquinas = yield obtener();
-            yield (0, delay_js_1.default)(1000);
-            //console.log(maquinas)
             const maquina = maquinas.find(maquina => maquina.codigo === codigo);
             if (!maquina)
                 throw new Error(`código ${codigo} no relacionado a ninguna máquina`);
@@ -65,7 +62,6 @@ function relacionarCodigo(codigo, uuid) {
         try {
             //console.log(codigo, uuid)
             const maquinas = yield obtener();
-            yield (0, delay_js_1.default)(1000);
             const maquina = maquinas.find(maquina => maquina.uuid === uuid);
             //if(!maquina.codigo) {
             maquina.codigo = codigo;
@@ -84,7 +80,6 @@ function filtrarPorUuid(uuidParcial) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const maquinas = yield obtener();
-            yield (0, delay_js_1.default)(1000);
             //console.log(maquinas)
             const maquinasUuid = uuidParcial ? maquinas.filter(maq => maq.uuid.includes(uuidParcial)) : [];
             if (!maquinasUuid)

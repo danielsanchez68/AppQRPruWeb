@@ -27,7 +27,6 @@ async function guardar(movimientos) {
 export async function obtenerPorUuid(uuid) {
     try {
         const ultimosMovimientos = await obtener()
-        await delay(1000)
         //console.log(maquinas)
         const movimiento = ultimosMovimientos.find(movimiento => movimiento.uuid === uuid);
         if(!movimiento) throw new Error(`uuid ${uuid} no relacionado a ningún movimiento`)
@@ -40,7 +39,6 @@ export async function obtenerPorUuid(uuid) {
 export async function agregar(movimiento) {
     try {
         const ultimosMovimientos = await obtener()
-        await delay(1000)
         ultimosMovimientos.push(movimiento)
         await guardar(ultimosMovimientos)
     } catch (error:any) {

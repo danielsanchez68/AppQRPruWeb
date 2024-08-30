@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -36,57 +13,84 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __importDefault(require("net"));
-const servicioMaquinas = __importStar(require("./DAO/maquinas.js"));
-const servicioMovimientos = __importStar(require("./DAO/ultimosMovimientos.js"));
+const fs_1 = __importDefault(require("fs"));
+const delay_js_1 = __importDefault(require("./util/delay.js"));
+const maquinas_js_1 = require("./DAO/maquinas.js");
+const ultimosMovimientos_js_1 = require("./DAO/ultimosMovimientos.js");
 const config_1 = __importDefault(require("../config"));
 const options = {
     keepAlive: true
 };
 // Crear el servidor TCP
 const server = net_1.default.createServer(options, socket => {
-    console.log('Client connected');
+    //console.log('Client connected');
     // Evento para manejar datos recibidos del cliente
     socket.on('data', (data) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         try {
             const datosRecibidos = JSON.parse(data);
-            //console.log('\n> Datos recibidos', datosRecibidos);
-            let datosEnviados;
-            if (datosRecibidos.cmd == 'send') {
-                const { codigo } = datosRecibidos.datos;
-                const maquina = yield servicioMaquinas.obtenerPorCodigo(codigo);
-                //console.log(maquina)
-                datosEnviados = Object.assign({}, maquina);
+            console.log('\n> Datos recibidos', datosRecibidos, new Date().toLocaleString());
+            let datosEnviados = {};
+            const cmd = JSON.parse(yield fs_1.default.promises.readFile('./Comandos/listado.json', 'utf-8'));
+            //nuevo server TCP
+            const comando = (_a = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _a === void 0 ? void 0 : _a.Comando;
+            if ((_c = (_b = cmd[comando]) === null || _b === void 0 ? void 0 : _b.tx) === null || _c === void 0 ? void 0 : _c.Comando) {
+                //console.log(comando)
+                /* if(
+                    comando === 'Operacion_SubirDinero' ||
+                    comando === 'VinculaTerminal' ||
+                    comando === 'ConsultaTerminal' ||
+                    comando === 'ListaUID' ||
+                    comando === 'UltimosMovimientos'
+                ) */ yield (0, delay_js_1.default)(200);
+                if (comando == 'ConsultaTerminal') {
+                    const codigo = (_d = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _d === void 0 ? void 0 : _d.QR;
+                    const maquina = yield (0, maquinas_js_1.obtenerPorCodigo)(codigo);
+                    cmd[comando].rx.Fabricante = maquina.NombreFabricante;
+                    cmd[comando].rx.Juego = maquina.NombreJuego;
+                    cmd[comando].rx.UID = maquina.uuid;
+                }
+                else if (comando == 'ListaUID') {
+                    const uuid = (_e = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _e === void 0 ? void 0 : _e.UID;
+                    const maquinas = yield (0, maquinas_js_1.filtrarPorUuid)(uuid);
+                    cmd[comando].rx.Terminales = maquinas.map(maq => {
+                        return {
+                            Vinculada: maq.codigo,
+                            UID: maq.uuid,
+                            Fabricante: maq.NombreFabricante,
+                            Juego: maq.NombreJuego
+                        };
+                    });
+                }
+                else if (comando == 'Operacion_SubirDinero') {
+                    const codigo = (_f = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _f === void 0 ? void 0 : _f.QR;
+                    const importe = (_g = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _g === void 0 ? void 0 : _g.Importe;
+                    const FyH = (_h = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _h === void 0 ? void 0 : _h.FyH;
+                    const maquina = yield (0, maquinas_js_1.obtenerPorCodigo)(codigo);
+                    const movimiento = {
+                        Fabricante: maquina.NombreFabricante,
+                        Juego: maquina.NombreJuego,
+                        UID: maquina.uuid,
+                        Importe: importe,
+                        FechaHora: FyH
+                    };
+                    yield (0, ultimosMovimientos_js_1.agregar)(movimiento);
+                }
+                else if (comando == 'UltimosMovimientos') {
+                    cmd[comando].rx.Movimientos = (yield (0, ultimosMovimientos_js_1.obtener)()).map(mov => (Object.assign(Object.assign({}, mov), { ticket: '12345678', impuesto: 69.82, neto: mov.Importe - 69.82 })));
+                }
+                else if (comando == 'VinculaTerminal') {
+                    const codigo = (_j = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _j === void 0 ? void 0 : _j.QR;
+                    const uuid = (_k = datosRecibidos === null || datosRecibidos === void 0 ? void 0 : datosRecibidos.datos) === null || _k === void 0 ? void 0 : _k.UID;
+                    yield (0, maquinas_js_1.relacionarCodigo)(codigo, uuid);
+                    const maquina = (yield (0, maquinas_js_1.filtrarPorUuid)(uuid))[0];
+                    cmd[comando].rx.Fabricante = maquina.NombreFabricante;
+                    cmd[comando].rx.Juego = maquina.NombreJuego;
+                    cmd[comando].rx.UID = uuid;
+                }
+                datosEnviados = (_l = cmd[comando]) === null || _l === void 0 ? void 0 : _l.rx;
             }
-            else if (datosRecibidos.cmd == 'get') {
-                const maquinas = yield servicioMaquinas.obtener();
-                datosEnviados = maquinas;
-            }
-            else if (datosRecibidos.cmd == 'asociar') {
-                const { codigo, uuid } = datosRecibidos.datos;
-                const maquina = yield servicioMaquinas.relacionarCodigo(codigo, uuid);
-                datosEnviados = maquina;
-            }
-            else if (datosRecibidos.cmd == 'filtrar') {
-                const { uuidParcial } = datosRecibidos.datos;
-                const maquinas = yield servicioMaquinas.filtrarPorUuid(uuidParcial);
-                datosEnviados = maquinas;
-            }
-            else if (datosRecibidos.cmd == 'obtener_um') {
-                const movimientos = yield servicioMovimientos.obtener();
-                datosEnviados = movimientos;
-            }
-            else if (datosRecibidos.cmd == 'obtener_um_uuid') {
-                const { uuid } = datosRecibidos.datos;
-                const movimiento = yield servicioMovimientos.obtenerPorUuid(uuid);
-                datosEnviados = movimiento;
-            }
-            else if (datosRecibidos.cmd == 'agregar_um') {
-                const { movimiento } = datosRecibidos.datos;
-                yield servicioMovimientos.agregar(movimiento);
-                const movimientos = yield servicioMovimientos.obtener();
-                datosEnviados = movimientos;
-            }
-            //console.log('< Datos enviados', datosEnviados);
+            console.log('< Datos enviados', datosEnviados, new Date().toLocaleString());
             // Enviar datos de vuelta al cliente
             socket.write(JSON.stringify(datosEnviados));
         }
@@ -96,7 +100,7 @@ const server = net_1.default.createServer(options, socket => {
     }));
     // Evento cuando se cierra la conexi�n del cliente
     socket.on('close', () => {
-        console.log('Client disconnected');
+        //console.log('Client disconnected');
     });
     // Manejar errores de conexi�n
     socket.on('error', (err) => {

@@ -13,39 +13,8 @@ class ServicioMaq implements IServicioMaquina {
         @inject(TYPES.ISistemaExt) private sistemaExt:ISistemaExt
     ) {}
 
-    enviarCodigoMaquina = async (datosEntrada:string) => {
-        const datosMaquina:Object = await new Promise(resolve => {
-            this.sistemaExt.send(datosEntrada, (datosMaquina:any) => {
-                resolve(datosMaquina)
-            })
-        })
-        return datosMaquina
-    }
-
-    getListadoMaquinas = async () => {
-        const listado:[] = await new Promise(resolve => {
-            this.sistemaExt.get((listado:any) => {
-                resolve(listado)
-            })
-        })
-        return listado
-    }
-
-    asociarMaquina = async (datosEntrada:string) => {
-        const datosMaquina:Object = await new Promise(resolve => {
-            this.sistemaExt.asociar(datosEntrada, (datosMaquina:any) => {
-                resolve(datosMaquina)
-            })
-        })
-        return datosMaquina
-    }
-
-    filtrarMaquina = async (datosEntrada:string) => {
-        const datosMaquina:Object = await new Promise(resolve => {
-            this.sistemaExt.filtrar(datosEntrada, (datosMaquina:any) => {
-                resolve(datosMaquina)
-            })
-        })
+    enviarConsultaMaquina = async (datosEntrada:string) => {
+        const datosMaquina:Object = await this.sistemaExt.consultaTerminal(datosEntrada)
         return datosMaquina
     }
 }

@@ -24,41 +24,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ControladorMaq = void 0;
 const inversify_1 = require("inversify");
-//import validar from './validaciones/producto'
-const container_types_1 = __importDefault(require("../container.types"));
-let ServicioMov = class ServicioMov {
-    constructor(sistemaExt) {
-        this.sistemaExt = sistemaExt;
-        this.obtenerMovimientos = () => __awaiter(this, void 0, void 0, function* () {
-            const movimientos = yield new Promise(resolve => {
-                this.sistemaExt.obtenerUM((movimientos) => {
-                    resolve(movimientos);
-                });
-            });
-            return movimientos;
-        });
-        this.obtenerMovimientoPorUuid = (uuid) => __awaiter(this, void 0, void 0, function* () {
-            const movimiento = yield new Promise(resolve => {
-                this.sistemaExt.obtenerUM_Uuid(uuid, (movimiento) => {
-                    resolve(movimiento);
-                });
-            });
-            return movimiento;
-        });
-        this.agregarMovimiento = (movimiento) => __awaiter(this, void 0, void 0, function* () {
-            const movimientos = yield new Promise(resolve => {
-                this.sistemaExt.agregarUM(movimiento, (movimientos) => {
-                    resolve(movimientos);
-                });
-            });
-            return movimientos;
+const container_types_1 = __importDefault(require("../../../../container.types"));
+let ControladorMaq = class ControladorMaq {
+    constructor(servicio) {
+        this.servicio = servicio;
+        this.enviarConsultaMaquina = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const datosEntrada = req.body;
+                //console.log(datosEntrada)
+                if (!Object.keys(datosEntrada).length)
+                    throw new Error('ERROR: datosEntrada vacío');
+                const datosMaquina = yield this.servicio.enviarConsultaMaquina(datosEntrada);
+                res.json(datosMaquina);
+            }
+            catch (error) {
+                res.status(500).json({ errMsg: error.message });
+            }
         });
     }
 };
-ServicioMov = __decorate([
+exports.ControladorMaq = ControladorMaq;
+exports.ControladorMaq = ControladorMaq = __decorate([
     (0, inversify_1.injectable)(),
-    __param(0, (0, inversify_1.inject)(container_types_1.default.ISistemaExt)),
+    __param(0, (0, inversify_1.inject)(container_types_1.default.IServicioMaquina)),
     __metadata("design:paramtypes", [Object])
-], ServicioMov);
-exports.default = ServicioMov;
+], ControladorMaq);

@@ -15,7 +15,7 @@ export async function obtener() {
     }
 }
 
-async function guardar(maquinas:any) {
+async function guardar(maquinas) {
     try {
         await fs.promises.writeFile(dbFilePath, JSON.stringify(maquinas,null,'\t'))
     } catch (error:any) {
@@ -27,8 +27,6 @@ async function guardar(maquinas:any) {
 export async function obtenerPorCodigo(codigo) {
     try {
         const maquinas = await obtener()
-        await delay(1000)
-        //console.log(maquinas)
         const maquina = maquinas.find(maquina => maquina.codigo === codigo);
         if(!maquina) throw new Error(`código ${codigo} no relacionado a ninguna máquina`)
         return maquina;
@@ -42,7 +40,6 @@ export async function relacionarCodigo(codigo, uuid) {
         //console.log(codigo, uuid)
 
         const maquinas = await obtener()
-        await delay(1000)
         const maquina = maquinas.find(maquina => maquina.uuid === uuid);
         //if(!maquina.codigo) {
             maquina.codigo = codigo
@@ -59,7 +56,6 @@ export async function relacionarCodigo(codigo, uuid) {
 export async function filtrarPorUuid(uuidParcial) {
     try {
         const maquinas = await obtener()
-        await delay(1000)
         //console.log(maquinas)
         const maquinasUuid = uuidParcial? maquinas.filter(maq => maq.uuid.includes(uuidParcial)) : []
         if(!maquinasUuid) throw new Error(`uuid parcial ${uuidParcial} no coincide con ninguna máquina`)

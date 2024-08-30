@@ -16,7 +16,6 @@ exports.obtener = obtener;
 exports.obtenerPorUuid = obtenerPorUuid;
 exports.agregar = agregar;
 const fs_1 = __importDefault(require("fs"));
-const delay_js_1 = __importDefault(require("../util/delay.js"));
 // Ruta del archivo DB.Json
 const dbFilePath = './DB/UM.json';
 function obtener() {
@@ -47,7 +46,6 @@ function obtenerPorUuid(uuid) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const ultimosMovimientos = yield obtener();
-            yield (0, delay_js_1.default)(1000);
             //console.log(maquinas)
             const movimiento = ultimosMovimientos.find(movimiento => movimiento.uuid === uuid);
             if (!movimiento)
@@ -63,7 +61,6 @@ function agregar(movimiento) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const ultimosMovimientos = yield obtener();
-            yield (0, delay_js_1.default)(1000);
             ultimosMovimientos.push(movimiento);
             yield guardar(ultimosMovimientos);
         }

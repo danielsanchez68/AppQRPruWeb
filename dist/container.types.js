@@ -3,10 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const TYPES = {
     IUI: Symbol('IUI'),
     IControladorMaq: Symbol('IControladorMaq'),
-    IControladorMov: Symbol('IControladorMov'),
+    IControladorUsuario: Symbol('IControladorUsuario'),
     IServicioMaquina: Symbol('IServicioMaquina'),
-    IServicioMovimientos: Symbol('IServicioMovimientos'),
-    IDAOProductos: Symbol('IDAOProductos'),
+    IServicioUsuario: Symbol('IServicioUsuario'),
     ISistemaExt: Symbol('ISistemaExt'),
     IServer: Symbol('IServer')
 };
