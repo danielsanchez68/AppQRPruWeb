@@ -36,7 +36,7 @@ class NetPromise {
     send(cmd:any, datos:any = {}) {
         return new Promise<Object>(resolve => {
             let buffer = ''
-            this.client.write(JSON.stringify({cmd, datos}))
+            this.client.write(JSON.stringify(datos))
             this.client.on('data', (data:any) => {
                 buffer += data.toString()
                 try {

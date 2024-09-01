@@ -1,9 +1,9 @@
 import net from 'net';
 import fs from 'fs';
 
-import delay from './util/delay.js';
-import { filtrarPorUuid, obtenerPorCodigo, relacionarCodigo } from './DAO/maquinas.js';
-import { agregar, obtener } from './DAO/ultimosMovimientos.js';
+import delay from './util/delay';
+import { filtrarPorUuid, obtenerPorCodigo, relacionarCodigo } from './DAO/maquinas';
+import { agregar, obtener } from './DAO/ultimosMovimientos';
 
 import config from '../config'
 
@@ -20,14 +20,15 @@ const server = net.createServer(options, socket => {
     socket.on('data', async (data:any) => {
         try {
             const datosRecibidos = JSON.parse(data);
-            console.log('\n> Datos recibidos', datosRecibidos, new Date().toLocaleString());
+            console.log('\n> Datos recibidos', JSON.stringify(datosRecibidos), new Date().toLocaleString());
 
             let datosEnviados = {}
 
             const cmd = JSON.parse(await fs.promises.readFile('./Comandos/listado.json','utf-8'))
 
             //nuevo server TCP
-            const comando = datosRecibidos?.datos?.Comando
+            const comando = datosRecibidos?.Comando
+            //console.log(comando)
             if(cmd[comando]?.tx?.Comando) {
                 //console.log(comando)
                 /* if(
@@ -39,7 +40,7 @@ const server = net.createServer(options, socket => {
                 ) */ await delay(200)
 
                 if(comando == 'ConsultaTerminal') {
-                    const codigo = datosRecibidos?.datos?.QR
+                    const codigo = datosRecibidos?.QR
                     const maquina = await obtenerPorCodigo(codigo)
 
                     cmd[comando].rx.Fabricante = maquina.NombreFabricante
@@ -47,7 +48,7 @@ const server = net.createServer(options, socket => {
                     cmd[comando].rx.UID = maquina.uuid
                 }
                 else if(comando == 'ListaUID') {
-                    const uuid = datosRecibidos?.datos?.UID
+                    const uuid = datosRecibidos?.UID
                     const maquinas = await filtrarPorUuid(uuid)
 
                     cmd[comando].rx.Terminales = maquinas.map( maq => {
@@ -60,9 +61,9 @@ const server = net.createServer(options, socket => {
                     })
                 }
                 else if(comando == 'Operacion_SubirDinero') {
-                    const codigo = datosRecibidos?.datos?.QR
-                    const importe = datosRecibidos?.datos?.Importe
-                    const FyH = datosRecibidos?.datos?.FyH
+                    const codigo = datosRecibidos?.QR
+                    const importe = datosRecibidos?.Importe
+                    const FyH = datosRecibidos?.FyH
                     const maquina = await obtenerPorCodigo(codigo)
 
                     const movimiento = {
@@ -83,8 +84,8 @@ const server = net.createServer(options, socket => {
                     }))
                 }
                 else if(comando == 'VinculaTerminal') {
-                    const codigo = datosRecibidos?.datos?.QR
-                    const uuid = datosRecibidos?.datos?.UID
+                    const codigo = datosRecibidos?.QR
+                    const uuid = datosRecibidos?.UID
                     await relacionarCodigo(codigo, uuid)
 
                     const maquina = (await filtrarPorUuid(uuid))[0]
@@ -94,7 +95,7 @@ const server = net.createServer(options, socket => {
                 }
                 datosEnviados = cmd[comando]?.rx
             }
-            console.log('< Datos enviados', datosEnviados, new Date().toLocaleString());
+            console.log('< Datos enviados', JSON.stringify(datosEnviados), new Date().toLocaleString());
 
             // Enviar datos de vuelta al cliente
             socket.write(JSON.stringify(datosEnviados));

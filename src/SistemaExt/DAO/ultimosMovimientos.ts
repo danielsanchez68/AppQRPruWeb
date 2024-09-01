@@ -1,5 +1,4 @@
 import fs from 'fs';
-import delay from '../util/delay.js';
 
 // Ruta del archivo DB.Json
 const dbFilePath = './DB/UM.json';
@@ -36,7 +35,7 @@ export async function obtenerPorUuid(uuid) {
     }
 }
 
-export async function agregar(movimiento) {
+export async function agregar(movimiento:any) {
     try {
         const ultimosMovimientos = await obtener()
         ultimosMovimientos.push(movimiento)
