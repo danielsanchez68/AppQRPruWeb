@@ -96,5 +96,40 @@
 		"UID": "016-0184",
 		"Importe": 5000,
 		"FechaHora": "30/8/2024, 9:53:20 a.m."
+	},
+	{
+		"Fabricante": "Aristocrat",
+		"Juego": "Dolphin T.",
+		"UID": "016-0184",
+		"Importe": 15000,
+		"FechaHora": "31/8/2024, 04:01:37"
+	},
+	{
+		"Fabricante": "Aristocrat",
+		"Juego": "Dolphin T.",
+		"UID": "016-0184",
+		"Importe": 6000,
+		"FechaHora": "31/8/2024, 04:01:49"
+	},
+	{
+		"Fabricante": "Aristocrat",
+		"Juego": "Dolphin T.",
+		"UID": "016-0184",
+		"Importe": 25000,
+		"FechaHora": "31/8/2024, 04:01:57"
+	},
+	{
+		"Fabricante": "Aristocrat",
+		"Juego": "Dolphin T.",
+		"UID": "016-0184",
+		"Importe": 6000,
+		"FechaHora": "1/9/2024, 11:11:56"
+	},
+	{
+		"Fabricante": "I.G.T.",
+		"Juego": "Stinkin' Rich",
+		"UID": "016-0154",
+		"Importe": 20000,
+		"FechaHora": "3/9/2024 10:17:33"
 	}
 ]

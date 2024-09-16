@@ -2,120 +2,186 @@ import net from 'net';
 import fs from 'fs';
 
 import delay from './util/delay';
-import { filtrarPorUuid, obtenerPorCodigo, relacionarCodigo } from './DAO/maquinas';
-import { agregar, obtener } from './DAO/ultimosMovimientos';
 
-import config from '../config'
+import config from './config'
+import { IServer } from './IServer';
+import { inject, injectable } from 'inversify';
+import TYPES from './container.types';
+import { IMaquinas } from './Servicio/Puertos/IMaquinas';
+import { IUltimosMovimientos } from './Servicio/Puertos/IUltimosMovimientos';
+import Color from './util/coloring';
+import TimeOut from './timeout';
+import { getNombre } from './util/nombres';
+import { getUuid } from './util/uuid';
+
+const timeOut = new TimeOut()
 
 
-const options = {
-    keepAlive: true
+@injectable()
+class Server implements IServer {
+
+    constructor(
+        @inject(TYPES.IMaquinas) private maquinas: IMaquinas,
+        @inject(TYPES.IUltimosMovimientos) private ultimosMovimientos: IUltimosMovimientos
+    ) { }
+
+    start() {
+        const options = {
+            keepAlive: true
+        }
+
+        // Crear el servidor TCP
+        const server = net.createServer(options, socket => {
+            let buffer = ''
+
+            //https://nodejs.org/docs/latest-v8.x/api/net.html#net_class_net_socket
+            //console.log(`\n[${Date.now()} ${new Date().toLocaleString()}] Client connected: ip[${socket.remoteAddress}] port[${socket.remotePort}]`)
+
+            // Evento para manejar datos recibidos del cliente
+            socket.on('data', async (data: any) => {
+                buffer += data
+                let imeiRx = ''
+                let idSesionRx = ''
+                let imeiExistente = ''
+                try {
+                    const datosRecibidos = JSON.parse(buffer);
+                    buffer = ''
+                    let datosEnviados = {}
+
+                    const cmd = JSON.parse(await fs.promises.readFile('./Comandos/listado.json', 'utf-8'))
+                    const comando = datosRecibidos?.Comando
+
+                    // para pruebas
+                    //console.log(timeOut.getLives())
+                    //JSON.parse('Holas')
+
+                    imeiRx = datosRecibidos?.imei
+                    idSesionRx = datosRecibidos?.IdSesion
+                    imeiExistente = timeOut.getImeiSesion(idSesionRx)
+
+                    /* console.log('imeiRx', imeiRx)
+                    console.log('imeiExistente', imeiExistente)
+                    console.log('idSesionRx', idSesionRx) */
+
+                    Color.colorLog(timeOut.getColorSesion(idSesionRx), `[${Date.now()} ${new Date().toLocaleString()}]${imeiRx? (' imei[' +imeiRx+']'): ''}${imeiExistente? (' imei[' +imeiExistente+']'): ''}${idSesionRx? (' sesion[' +idSesionRx+']') : ''} <cmd[${comando}] port[${socket.remotePort}]`)
+                    const comandoExists = cmd[comando]?.tx?.Comando
+                    if (comandoExists) {
+                        // si se recibe un imei
+                        if (imeiRx) {
+                            // y el comando es login
+                            if (comando == 'Login') {
+                                //console.log('LOGIN!!!', imeiRx)
+                                if(!timeOut.sesionExists(imeiRx)) {
+                                    //console.log('GENERAR!!!', imeiRx)
+                                    cmd[comando].rx.Operador = getNombre() || 'Juan Perez'
+                                    let idSesion = getUuid() || ''
+                                    cmd[comando].rx.IdSesion = idSesion
+                                    timeOut.setLive(imeiRx, idSesion)
+                                    datosEnviados = cmd[comando]?.rx
+                                }
+                            }
+                        }
+                        else if (imeiExistente) {
+                            timeOut.setLive(imeiRx, idSesionRx)
+                            if (comando == 'ConsultaTerminal') {
+                                const codigo = datosRecibidos?.QR
+                                const maquina = await this.maquinas.obtenerPorCodigo(codigo)
+
+                                cmd[comando].rx.Fabricante = maquina.NombreFabricante
+                                cmd[comando].rx.Juego = maquina.NombreJuego
+                                cmd[comando].rx.UID = maquina.uuid
+                            }
+                            else if (comando == 'ListaUID') {
+                                const uuid = datosRecibidos?.UID
+                                const maquinas = await this.maquinas.filtrarPorUuid(uuid)
+
+                                cmd[comando].rx.Terminales = maquinas.map(maq => {
+                                    return {
+                                        Vinculada: maq.codigo,
+                                        UID: maq.uuid,
+                                        Fabricante: maq.NombreFabricante,
+                                        Juego: maq.NombreJuego
+                                    }
+                                })
+                            }
+                            else if (comando == 'Operacion_SubirDinero') {
+                                const codigo = datosRecibidos?.QR
+                                const importe = datosRecibidos?.Importe
+                                const FyH = new Date().toLocaleString().replace(',', '')
+                                const maquina = await this.maquinas.obtenerPorCodigo(codigo)
+
+                                const movimiento = {
+                                    Fabricante: maquina.NombreFabricante,
+                                    Juego: maquina.NombreJuego,
+                                    UID: maquina.uuid,
+                                    Importe: importe,
+                                    FechaHora: FyH
+                                }
+                                await this.ultimosMovimientos.agregar(movimiento)
+                            }
+                            else if (comando == 'UltimosMovimientos') {
+                                cmd[comando].rx.Movimientos = (await this.ultimosMovimientos.obtener()).map(mov => ({
+                                    ...mov,
+                                    ticket: '12345678',
+                                    impuesto: 69.82,
+                                    neto: mov.Importe - 69.82
+                                }))
+                            }
+                            else if (comando == 'VinculaTerminal') {
+                                const codigo = datosRecibidos?.QR
+                                const uuid = datosRecibidos?.UID
+                                await this.maquinas.relacionarCodigo(codigo, uuid)
+
+                                const maquina = (await this.maquinas.filtrarPorUuid(uuid))[0]
+                                cmd[comando].rx.Fabricante = maquina.NombreFabricante
+                                cmd[comando].rx.Juego = maquina.NombreJuego
+                                cmd[comando].rx.UID = uuid
+                            }
+
+                            datosEnviados = cmd[comando]?.rx
+                        }
+
+                        if(Object.keys(datosEnviados).length) {
+                            Color.colorLog(timeOut.getColorSesion(idSesionRx),`[${Date.now()} ${new Date().toLocaleString()}]${imeiRx? (' imei[' +imeiRx+']'): ''}${imeiExistente? (' imei[' +imeiExistente+']'): ''}${idSesionRx? (' sesion[' +idSesionRx+']') : ''} >cmd[${cmd[comando]?.rx.Comando}] port[${socket.remotePort}]`)
+                            // Enviar datos de vuelta al cliente
+                            socket.write(JSON.stringify(datosEnviados));
+                        }
+                    }
+                }
+                //catch { }
+                catch (error: any) {
+                    const stackLines = error.stack.split('\n');
+                    const errorLine = stackLines[1] || 'No line info';
+
+                    const fileNameMatch = /at\s+(.+):(\d+):(\d+)/.exec(errorLine);
+                    const fileName = fileNameMatch ? fileNameMatch[1] : 'Unknown file';
+
+                    console.log(
+                        Color.colorString(Color.BgRed, 'ERROR:'),
+                        //Color.colorString(timeOut.getColorIdsesion(idSesion),`idSesion[${idSesion}]`), 
+                        Color.colorString(Color.BgWhite + Color.FgBlack, error.message),
+                        //Color.colorString(Color.BgWhite + Color.FgBlack, fileName),
+                        //Color.colorString(Color.BgWhite + Color.FgBlack, errorLine),
+                    )
+                }
+            });
+
+            // Evento cuando se cierra la conexión del cliente
+            socket.on('close', () => {
+                //console.log(`[${Date.now()} ${new Date().toLocaleString()}] Client disconnected: ip[${socket.remoteAddress}] port[${socket.remotePort}]`)
+            });
+
+            // Manejar errores de conexión
+            socket.on('error', (err) => {
+                console.error('Connection error:', err);
+            });
+        });
+
+        const PORT = config.PORT_EXT;
+        server.listen(PORT, () => {
+            console.log(`Servicio TCP AppQR escuchando en el puerto ${PORT} (persistencia en ${config.MODO_PERSISTENCIA})`);
+        });
+    }
 }
 
-// Crear el servidor TCP
-const server = net.createServer(options, socket => {
-    //console.log('Client connected');
-
-    // Evento para manejar datos recibidos del cliente
-    socket.on('data', async (data:any) => {
-        try {
-            const datosRecibidos = JSON.parse(data);
-            console.log('\n> Datos recibidos', JSON.stringify(datosRecibidos), new Date().toLocaleString());
-
-            let datosEnviados = {}
-
-            const cmd = JSON.parse(await fs.promises.readFile('./Comandos/listado.json','utf-8'))
-
-            //nuevo server TCP
-            const comando = datosRecibidos?.Comando
-            //console.log(comando)
-            if(cmd[comando]?.tx?.Comando) {
-                //console.log(comando)
-                /* if(
-                    comando === 'Operacion_SubirDinero' ||
-                    comando === 'VinculaTerminal' ||
-                    comando === 'ConsultaTerminal' ||
-                    comando === 'ListaUID' ||
-                    comando === 'UltimosMovimientos'
-                ) */ await delay(200)
-
-                if(comando == 'ConsultaTerminal') {
-                    const codigo = datosRecibidos?.QR
-                    const maquina = await obtenerPorCodigo(codigo)
-
-                    cmd[comando].rx.Fabricante = maquina.NombreFabricante
-                    cmd[comando].rx.Juego = maquina.NombreJuego
-                    cmd[comando].rx.UID = maquina.uuid
-                }
-                else if(comando == 'ListaUID') {
-                    const uuid = datosRecibidos?.UID
-                    const maquinas = await filtrarPorUuid(uuid)
-
-                    cmd[comando].rx.Terminales = maquinas.map( maq => {
-                        return {
-                            Vinculada: maq.codigo,
-                            UID: maq.uuid,
-                            Fabricante: maq.NombreFabricante,
-                            Juego: maq.NombreJuego
-                        } 
-                    })
-                }
-                else if(comando == 'Operacion_SubirDinero') {
-                    const codigo = datosRecibidos?.QR
-                    const importe = datosRecibidos?.Importe
-                    const FyH = datosRecibidos?.FyH
-                    const maquina = await obtenerPorCodigo(codigo)
-
-                    const movimiento = {
-                        Fabricante: maquina.NombreFabricante,
-                        Juego: maquina.NombreJuego,
-                        UID: maquina.uuid,
-                        Importe: importe,
-                        FechaHora: FyH
-                    }
-                    await agregar(movimiento)
-                }
-                else if(comando == 'UltimosMovimientos') {
-                    cmd[comando].rx.Movimientos = (await obtener()).map(mov => ({
-                        ...mov, 
-                        ticket: '12345678',
-                        impuesto: 69.82,
-                        neto: mov.Importe - 69.82
-                    }))
-                }
-                else if(comando == 'VinculaTerminal') {
-                    const codigo = datosRecibidos?.QR
-                    const uuid = datosRecibidos?.UID
-                    await relacionarCodigo(codigo, uuid)
-
-                    const maquina = (await filtrarPorUuid(uuid))[0]
-                    cmd[comando].rx.Fabricante = maquina.NombreFabricante
-                    cmd[comando].rx.Juego = maquina.NombreJuego
-                    cmd[comando].rx.UID = uuid
-                }
-                datosEnviados = cmd[comando]?.rx
-            }
-            console.log('< Datos enviados', JSON.stringify(datosEnviados), new Date().toLocaleString());
-
-            // Enviar datos de vuelta al cliente
-            socket.write(JSON.stringify(datosEnviados));
-        } catch (error:any) {
-            console.log('ERROR:', error.message);
-        }
-    });
-
-    // Evento cuando se cierra la conexi�n del cliente
-    socket.on('close', () => {
-        //console.log('Client disconnected');
-    });
-
-    // Manejar errores de conexi�n
-    socket.on('error', (err) => {
-        console.error('Connection error:', err);
-    });
-});
-
-const port = config.PORT_EXT;
-server.listen(port, () => {
-    console.log(`TCP server started on port ${port}`);
-});
+export default Server

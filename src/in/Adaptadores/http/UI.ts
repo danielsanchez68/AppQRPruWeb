@@ -30,7 +30,7 @@ class UI_HTTP implements IUI {
     private configRouterUsuario() {
         const router = express.Router()
 
-        router.get('/ip', this.controladorUsuario.ip )
+        router.get('/headers', this.controladorUsuario.headers )
 
         return router
     }
