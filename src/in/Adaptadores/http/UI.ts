@@ -1,8 +1,6 @@
 import express from 'express'
 import http from 'http';
 
-import fs from 'fs';
-
 import config from '../../../config'
 
 import cors from 'cors'
